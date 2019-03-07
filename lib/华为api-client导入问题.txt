@@ -1,0 +1,14 @@
+解决第三方包打包无法引入的问题:
+
+找到api-client-1.0.0.jar目录,在命令行输入:
+mvn install:install-file -DgroupId=com.huawei.m2m.iotplatform -DartifactId=api-client -Dversion=1.0.0 -Dpackaging=jar -Dfile=api-client-1.0.0.jar
+
+在本地的maven库中会有当前包的信息
+现在直接在
+pom.xml引入
+
+<dependency>
+    <groupId>com.huawei.m2m.iotplatform</groupId>
+    <artifactId>api-client</artifactId>
+    <version>1.0.0</version>
+</dependency>

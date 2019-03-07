@@ -1,0 +1,29 @@
+#tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 1000
+    min-spare-threads: 30
+    max-connections: 10000
+  port: 8070
+  servlet:
+    context-path: /
+  connection-timeout: 10S
+
+
+# 环境 dev|prod
+spring:
+  profiles:
+    active: dev
+  http:
+    encoding:
+      force: true
+      charset: utf-8
+      enabled: true
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  resources: # 指定静态资源的路径
+    static-locations: classpath:/static/,classpath:/views/
+
+

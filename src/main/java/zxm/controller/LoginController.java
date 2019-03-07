@@ -19,13 +19,13 @@ public class LoginController {
             String accessToken = OcTokenHandler.getInstance().getAccessToken();
             return ResultFactory.INSTANCE.success(accessToken);
         } catch (NorthApiException e) {
+
             return ResultFactory.INSTANCE.error(e.toString());
         }
     }
 
     @PostMapping("/logout")
-    public Result logout(String account, String password) {
-
+    public Result logout() {
         return ResultFactory.INSTANCE.success();
     }
 

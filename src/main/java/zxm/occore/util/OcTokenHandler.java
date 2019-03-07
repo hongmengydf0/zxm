@@ -1,5 +1,13 @@
 package zxm.occore.util;
 
+import com.huawei.iotplatform.client.NorthApiClient;
+import com.huawei.iotplatform.client.NorthApiException;
+import com.huawei.iotplatform.client.dto.AuthOutDTO;
+import com.huawei.iotplatform.client.dto.ClientInfo;
+import com.huawei.iotplatform.client.invokeapi.Authentication;
+import org.apache.commons.lang3.StringUtils;
+import zxm.occore.constant.OCConstant;
+
 public class OcTokenHandler {
 
     private final static OcTokenHandler INSTANCE = new OcTokenHandler();
@@ -19,67 +27,51 @@ public class OcTokenHandler {
         return INSTANCE;
     }
 
-    public String getAppId() {
-        return appId;
-    }
+    public String getAuthToken(NorthApiClient northApiClient) throws NorthApiException {
 
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
+        //获取到
+        if (StringUtils.isNotEmpty(accessToken)) {
+            long exppires = System.currentTimeMillis();
+            //是否过期
+            boolean b = (exppires - this.createTime) >= this.expiresIn;
+            if (!b) {
+                return accessToken;
+            }
+        }
+        //未取到或者已经过期，直接调用API去获取
+        long exppires = System.currentTimeMillis();
+        if (northApiClient == null) {
+            northApiClient = defaultApiClient();
+        }
 
-    public String getSecret() {
-        return secret;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
-    }
-
-    public String getTokenType() {
-        return tokenType;
-    }
-
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
-    }
-
-    public long getExpiresIn() {
-        return expiresIn;
-    }
-
-    public void setExpiresIn(long expiresIn) {
-        this.expiresIn = expiresIn;
-    }
-
-    public String getAccessToken() {
+        Authentication authentication = new Authentication(northApiClient);
+        AuthOutDTO authOutDTO = authentication.getAuthToken();
+        accessToken = authOutDTO.getAccessToken();
+        this.createTime = exppires;
+        this.refreshToken = authOutDTO.getRefreshToken();
+        this.scope = authOutDTO.getScope();
+        this.tokenType = authOutDTO.getTokenType();
         return accessToken;
     }
 
-    public void setAccessToken(String accessToken) {
+    public NorthApiClient defaultApiClient() throws NorthApiException {
+        NorthApiClient northApiClient = new NorthApiClient();
+        ClientInfo clientInfo = new ClientInfo();
+        clientInfo.setAppId(OCConstant.APP_ID);
+        clientInfo.setPlatformIp(OCConstant.IP);
+        clientInfo.setPlatformPort(OCConstant.PORT);
+        clientInfo.setSecret(OCConstant.SECRET);
+        northApiClient.setClientInfo(clientInfo);
+        northApiClient.initSSLConfig();
+        return northApiClient;
+    }
+
+    public String getAccessToken() throws NorthApiException {
+        return getAuthToken(null);
+    }
+
+    private void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
-    public long getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(long createTime) {
-        this.createTime = createTime;
-    }
 }

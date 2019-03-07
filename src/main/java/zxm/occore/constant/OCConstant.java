@@ -5,6 +5,11 @@ public class OCConstant {
     public static final String SERVICE_ID = "INFO";
     public static final String METHOD = "Control";
 
+    public static final String APP_ID = "HYPZ07wBOzhxCaIkLr_qC1a7yWwa";
+    public static final String SECRET = "BMtGxhS0ipDt5JYjCAFtPiA9dSca";
+    public static final String IP = "139.159.133.59";
+    public static final String PORT = "8743";
+
     public enum NotifyType {
         BIND_DEVICE("bindDevice"),//绑定设备
         DEVICE_ADDED("deviceAdded"),//添加新设备

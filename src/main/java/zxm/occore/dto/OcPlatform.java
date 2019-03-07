@@ -2,17 +2,27 @@ package zxm.occore.dto;
 
 import java.util.Date;
 
-public class OcPlatform{
+public class OcPlatform {
 
 
-    private String protocol;
-    private String apiKey;
     private String appId;
     private String secret;
     private String platformIp;
     private String platformPort;
     private String psk;
+    private String protocol;
     private Date createDate;
+
+    public OcPlatform() {
+
+    }
+
+    public OcPlatform(String appId, String secret, String platformIp, String platformPort) {
+        this.appId = appId;
+        this.secret = secret;
+        this.platformIp = platformIp;
+        this.platformPort = platformPort;
+    }
 
     public String getProtocol() {
         return protocol;
@@ -20,14 +30,6 @@ public class OcPlatform{
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
-    }
-
-    public String getApiKey() {
-        return apiKey;
-    }
-
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
     }
 
     public String getAppId() {

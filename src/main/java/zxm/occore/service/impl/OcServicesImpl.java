@@ -4,7 +4,6 @@ import com.huawei.iotplatform.client.NorthApiClient;
 import com.huawei.iotplatform.client.NorthApiException;
 import com.huawei.iotplatform.client.dto.*;
 import com.huawei.iotplatform.client.invokeapi.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,16 +22,13 @@ public class OcServicesImpl implements IOcServices {
 
     public static void main(String... args) {
 
-        System.out.println(507 / 200 + (507 % 200 == 0 ? 0 : 1));
-
-
 //        OcServicesImpl huaWeiServices = new OcServicesImpl();
 //        OcPlatform platform = new OcPlatform();
 //        platform.setAppId("YTk312uISbLKXghRYimfxyfdrYwa");
 //        platform.setSecret("R46AEGemwQAGJIyrsFzFLcBe6KIa");
 //        platform.setPlatformIp("139.159.133.59");
 //        platform.setPlatformPort("8743");
-//        NorthApiClient northApiClient = huaWeiServices.initApiClient(platform);
+//        NorthApiClient northApiClient = huaWeiServices.defaultApiClient();
 //        String accessToken = huaWeiServices.getAuthToken(northApiClient).getAccessToken();
 //        System.out.println("accessToken ========== " + accessToken);
 
@@ -53,81 +49,13 @@ public class OcServicesImpl implements IOcServices {
     }
 
     /**
-     * 批量查询
+     * 获取默认的NorthApiClient
      *
-     * @param platform
-     * @param dto
      * @return
      * @throws NorthApiException
      */
-    @Override
-    public QueryBatchDevicesInfoOutDTO getDeivceList(OcPlatform platform, QueryBatchDevicesInfoInDTO dto) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
-        String accessToken = getAuthToken(northApiClient);
-        DataCollection dataCollection = new DataCollection(northApiClient);
-        QueryBatchDevicesInfoOutDTO outDTO = dataCollection.queryBatchDevicesInfo(dto, accessToken);
-        return outDTO;
-
-    }
-
-    /**
-     * 查询单个
-     *
-     * @param platform
-     * @param deviceId
-     * @return
-     * @throws NorthApiException
-     */
-    @Override
-    public QuerySingleDeviceInfoOutDTO getDevice(OcPlatform platform, String deviceId) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
-        String accessToken = getAuthToken(northApiClient);
-        DataCollection dataCollection = new DataCollection(northApiClient);
-        return dataCollection.querySingleDeviceInfo(deviceId, null, platform.getAppId(), accessToken);
-    }
-
-
-    @Override
-    public RegDirectDeviceOutDTO registerDevice(OcPlatform platform, String verifyCode, String nodeId) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
-        String accessToken = getAuthToken(northApiClient);
-        DeviceManagement deviceManagement = new DeviceManagement(northApiClient);
-
-        RegDirectDeviceInDTO2 rddid = new RegDirectDeviceInDTO2();
-        rddid.setNodeId(nodeId);
-        rddid.setVerifyCode(verifyCode);
-
-        RegDirectDeviceOutDTO rddod = deviceManagement.regDirectDevice(rddid, platform.getAppId(), accessToken);
-
-        return rddod;
-
-    }
-
-    @Override
-    public QueryDeviceDataHistoryOutDTO queryDeviceDataHistory(OcPlatform platform,
-                                                               QueryDeviceDataHistoryInDTO qddhInDTO) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
-        String accessToken = getAuthToken(northApiClient);
-        DataCollection dataCollection = new DataCollection(northApiClient);
-
-        return dataCollection.queryDeviceDataHistory(qddhInDTO, accessToken);
-    }
-
-    @Override
-    public void modifyDevice(OcPlatform platform, ModifyDeviceInforInDTO modifyDeviceInforInDTO, String deviceId) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
-        String accessToken = getAuthToken(northApiClient);
-        DeviceManagement deviceManagement = new DeviceManagement(northApiClient);
-
-        deviceManagement.modifyDeviceInfo(modifyDeviceInforInDTO, deviceId, platform.getAppId(), accessToken);
-    }
-
-    @Override
-    public void deleteDevice(OcPlatform platform, String deviceId, Boolean cascade) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
-        String accessToken = getAuthToken(northApiClient);
-        DeviceManagement deviceManagement = new DeviceManagement(northApiClient);
-        deviceManagement.deleteDirectDevice(deviceId, cascade, platform.getAppId(), accessToken);
+    public NorthApiClient defaultApiClient() throws NorthApiException {
+        return OcTokenHandler.getInstance().defaultApiClient();
     }
 
 
@@ -152,34 +80,91 @@ public class OcServicesImpl implements IOcServices {
     /**
      * 取accessToken
      *
-     * @param northApiClient
      * @return
      */
     public String getAuthToken(NorthApiClient northApiClient) throws NorthApiException {
-        String accessToken = OcTokenHandler.getInstance().getAccessToken();
-        //获取到
-        if (StringUtils.isNotEmpty(accessToken)) {
-            long exppires = System.currentTimeMillis();
-            //是否过期
-            boolean b = (exppires - OcTokenHandler.getInstance().getCreateTime()) >=
-                    OcTokenHandler.getInstance().getExpiresIn();
-            if (!b) {
-                return accessToken;
-            }
-        }
-        //未取到或者已经过期，直接调用API去获取
-        long exppires = System.currentTimeMillis();
-        Authentication authentication = new Authentication(northApiClient);
-        AuthOutDTO authOutDTO = authentication.getAuthToken();
-        accessToken = authOutDTO.getAccessToken();
-        OcTokenHandler.getInstance().setAccessToken(accessToken);
-        OcTokenHandler.getInstance().setCreateTime(exppires);
-        OcTokenHandler.getInstance().setExpiresIn(authOutDTO.getExpiresIn() * 1000);
-        OcTokenHandler.getInstance().setRefreshToken(authOutDTO.getRefreshToken());
-        OcTokenHandler.getInstance().setScope(authOutDTO.getScope());
-        OcTokenHandler.getInstance().setTokenType(authOutDTO.getTokenType());
+        String accessToken = OcTokenHandler.getInstance().getAuthToken(northApiClient);
         return accessToken;
     }
+
+    /**
+     * 批量查询设备
+     *
+     * @param platform
+     * @param dto
+     * @return
+     * @throws NorthApiException
+     */
+    @Override
+    public QueryBatchDevicesInfoOutDTO getDeivceList(OcPlatform platform, QueryBatchDevicesInfoInDTO dto) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
+        String accessToken = getAuthToken(northApiClient);
+        DataCollection dataCollection = new DataCollection(northApiClient);
+        QueryBatchDevicesInfoOutDTO outDTO = dataCollection.queryBatchDevicesInfo(dto, accessToken);
+        return outDTO;
+
+    }
+
+    /**
+     * 查询单个设备
+     *
+     * @param platform
+     * @param deviceId
+     * @return
+     * @throws NorthApiException
+     */
+    @Override
+    public QuerySingleDeviceInfoOutDTO getDevice(OcPlatform platform, String deviceId) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
+        String accessToken = getAuthToken(northApiClient);
+        DataCollection dataCollection = new DataCollection(northApiClient);
+        return dataCollection.querySingleDeviceInfo(deviceId, null, platform.getAppId(), accessToken);
+    }
+
+
+    @Override
+    public RegDirectDeviceOutDTO registerDevice(OcPlatform platform, String verifyCode, String nodeId) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
+        String accessToken = getAuthToken(northApiClient);
+        DeviceManagement deviceManagement = new DeviceManagement(northApiClient);
+
+        RegDirectDeviceInDTO2 rddid = new RegDirectDeviceInDTO2();
+        rddid.setNodeId(nodeId);
+        rddid.setVerifyCode(verifyCode);
+
+        RegDirectDeviceOutDTO rddod = deviceManagement.regDirectDevice(rddid, platform.getAppId(), accessToken);
+
+        return rddod;
+
+    }
+
+    @Override
+    public QueryDeviceDataHistoryOutDTO queryDeviceDataHistory(OcPlatform platform,
+                                                               QueryDeviceDataHistoryInDTO qddhInDTO) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
+        String accessToken = getAuthToken(northApiClient);
+        DataCollection dataCollection = new DataCollection(northApiClient);
+
+        return dataCollection.queryDeviceDataHistory(qddhInDTO, accessToken);
+    }
+
+    @Override
+    public void modifyDevice(OcPlatform platform, ModifyDeviceInforInDTO modifyDeviceInforInDTO, String deviceId) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
+        String accessToken = getAuthToken(northApiClient);
+        DeviceManagement deviceManagement = new DeviceManagement(northApiClient);
+
+        deviceManagement.modifyDeviceInfo(modifyDeviceInforInDTO, deviceId, platform.getAppId(), accessToken);
+    }
+
+    @Override
+    public void deleteDevice(OcPlatform platform, String deviceId, Boolean cascade) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
+        String accessToken = getAuthToken(northApiClient);
+        DeviceManagement deviceManagement = new DeviceManagement(northApiClient);
+        deviceManagement.deleteDirectDevice(deviceId, cascade, platform.getAppId(), accessToken);
+    }
+
 
     /**
      * 订阅平台业务数据
@@ -192,7 +177,7 @@ public class OcServicesImpl implements IOcServices {
      */
     @Override
     public boolean subDeviceData(OcPlatform platform, OCConstant.NotifyType notifyType, String callbackUrl) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
+        NorthApiClient northApiClient = defaultApiClient();
         String accessToken = getAuthToken(northApiClient);
 
         SubscriptionManagement subscriptionManagement = new SubscriptionManagement(northApiClient);
@@ -205,7 +190,7 @@ public class OcServicesImpl implements IOcServices {
 
     @Override
     public boolean deleteBatchSubscriptions(OcPlatform platform, OCConstant.NotifyType notifyType) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(platform);
+        NorthApiClient northApiClient = defaultApiClient();
         String accessToken = getAuthToken(northApiClient);
 
         SubscriptionManagement subscriptionManagement = new SubscriptionManagement(northApiClient);
@@ -230,7 +215,7 @@ public class OcServicesImpl implements IOcServices {
     }
 
     @Override
-    public boolean dropTrigger(OcPlatform seleProjPlat, String triggerId) throws NorthApiException {
+    public boolean dropTrigger(OcPlatform seleProjPlat, String triggerId) {
         return false;
     }
 

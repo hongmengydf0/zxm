@@ -8,7 +8,7 @@ import zxm.common.result.Result;
 import zxm.common.result.ResultFactory;
 import zxm.occore.util.OcTokenHandler;
 
-@RestController()
+@RestController
 @RequestMapping("/login")
 public class LoginController {
 

@@ -130,11 +130,11 @@ public interface IOcService {
     /**
      * 设备命令下发
      *
-     * @param donglePlatform
+     * @param appId
      * @param pdcInDTO
      * @return postDeviceCommandOutDTO2
      * @throws NorthApiException
      */
-    PostDeviceCommandOutDTO2 createDeviceCommand(OcPlatform donglePlatform, PostDeviceCommandInDTO2 pdcInDTO) throws NorthApiException;
+    PostDeviceCommandOutDTO2 createDeviceCommand(String appId, PostDeviceCommandInDTO2 pdcInDTO) throws NorthApiException;
 
 }

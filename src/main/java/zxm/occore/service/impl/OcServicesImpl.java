@@ -218,12 +218,11 @@ public class OcServicesImpl implements IOcService {
 
 
     @Override
-    public PostDeviceCommandOutDTO2 createDeviceCommand(OcPlatform donglePlatform, PostDeviceCommandInDTO2 pdcInDTO) throws NorthApiException {
-        NorthApiClient northApiClient = initApiClient(donglePlatform);
+    public PostDeviceCommandOutDTO2 createDeviceCommand(String appId, PostDeviceCommandInDTO2 pdcInDTO) throws NorthApiException {
+        NorthApiClient northApiClient = defaultApiClient();
         String accessToken = getAuthToken(northApiClient);
         SignalDelivery cmd = new SignalDelivery(northApiClient);
-        PostDeviceCommandOutDTO2 postDeviceCommandOutDTO2 = cmd
-                .postDeviceCommand(pdcInDTO, donglePlatform.getAppId(), accessToken);
+        PostDeviceCommandOutDTO2 postDeviceCommandOutDTO2 = cmd.postDeviceCommand(pdcInDTO, appId, accessToken);
         return postDeviceCommandOutDTO2;
     }
 

@@ -2,7 +2,7 @@ package zxm.occore.constant;
 
 public class OCConstant {
 
-    public static final String SERVICE_ID = "INFO";
+    public static final String SERVICE_ID = "Watermonitor";
     public static final String METHOD = "Control";
 
     public static final String APP_ID = "HYPZ07wBOzhxCaIkLr_qC1a7yWwa";

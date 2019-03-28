@@ -14,7 +14,7 @@ public class LoginController {
 
 
     @PostMapping("/login")
-    public Result login(String userName, String password) {
+    public Result login(String username, String password) {
         try {
             String accessToken = OcTokenHandler.getInstance().getAccessToken();
             return ResultFactory.INSTANCE.success(accessToken);

@@ -46,16 +46,8 @@ public class DeviceController {
 
     @GetMapping("getDeviceRealData")
     public Result getDeviceRealData(String deviceId, String gatewayId) {
-        QueryDeviceDataHistoryInDTO qddhInDTO = new QueryDeviceDataHistoryInDTO();
-        qddhInDTO.setAppId(OCConstant.APP_ID);
-        qddhInDTO.setPageNo(0);
-        qddhInDTO.setPageSize(1);
-        qddhInDTO.setDeviceId(deviceId);
-        qddhInDTO.setGatewayId(gatewayId);
-//        qddhInDTO.setStartTime(startTime);//yyyyMMdd'T'HHmmss'Z'
-//        qddhInDTO.setEndTime(endTime);
         try {
-            QueryDeviceDataHistoryOutDTO out = ocService.queryDeviceDataHistory(qddhInDTO);
+            QueryDeviceDataHistoryOutDTO out = getHistoryData(deviceId, gatewayId, null, null, 1);
             return ResultFactory.INSTANCE.success(out);
         } catch (NorthApiException e) {
             logger.error(e.toString());
@@ -65,20 +57,9 @@ public class DeviceController {
 
     @GetMapping("getDeviceHistoryData")
     public Result getDeviceHistoryData(String deviceId, String gatewayId, String startTime, String endTime) {
-        QueryDeviceDataHistoryInDTO qddhInDTO = new QueryDeviceDataHistoryInDTO();
-        qddhInDTO.setAppId(OCConstant.APP_ID);
-        qddhInDTO.setPageNo(0);
-        qddhInDTO.setPageSize(100);
-        qddhInDTO.setDeviceId(deviceId);
-        qddhInDTO.setGatewayId(gatewayId);
-        if (StringUtils.isNotEmpty(startTime)) {
-            qddhInDTO.setStartTime(Tools.localToUTC(startTime));
-        }
-        if (StringUtils.isNotEmpty(endTime)) {
-            qddhInDTO.setEndTime(Tools.localToUTC(endTime));
-        }
+
         try {
-            QueryDeviceDataHistoryOutDTO out = ocService.queryDeviceDataHistory(qddhInDTO);
+            QueryDeviceDataHistoryOutDTO out = getHistoryData(deviceId, gatewayId, startTime, endTime, 100);
             return ResultFactory.INSTANCE.success(out);
         } catch (NorthApiException e) {
             logger.error(e.toString());
@@ -87,7 +68,19 @@ public class DeviceController {
     }
 
     @PostMapping("createCommand")
-    public Result createCommand(String deviceId) {
+    public Result createCommand(String deviceId, String gatewayId) {
+        //先获取实时数据
+        QueryDeviceDataHistoryOutDTO out;
+        try {
+            out = getHistoryData(deviceId, gatewayId, null, null, 1);
+        } catch (NorthApiException e) {
+            logger.error(e.toString());
+            return ResultFactory.INSTANCE.error(e.toString());
+        }
+        //判断
+        String shuiwei = out.getDeviceDataHistoryDTOs().get(0).getData().path("shuiwei").asText();
+        String key = Integer.valueOf(shuiwei) >= 1 ? "ON" : "OFF";
+
         PostDeviceCommandInDTO2 pdcInDTO = new PostDeviceCommandInDTO2();
         pdcInDTO.setCallbackUrl("");
         pdcInDTO.setDeviceId(deviceId);
@@ -96,10 +89,7 @@ public class DeviceController {
         commandDTOV4.setServiceId(OCConstant.SERVICE_ID);
         commandDTOV4.setMethod(OCConstant.METHOD);
         Map<String, Object> param = new HashMap<>();
-        param.put("zhuodu", "1");
-        param.put("ph", "1");
-        param.put("temp", "1");
-        param.put("shuiwei", "1");
+        param.put("Key", key); //ON,OFF
         commandDTOV4.setParas(param);
         pdcInDTO.setCommand(commandDTOV4);
         try {
@@ -111,6 +101,36 @@ public class DeviceController {
             logger.error(e.toString());
             return ResultFactory.INSTANCE.error(e.toString());
         }
+    }
+
+    /**
+     * 获取平台数据
+     *
+     * @param deviceId
+     * @param gatewayId
+     * @param startTime
+     * @param endTime
+     * @return
+     * @throws NorthApiException
+     */
+
+    private QueryDeviceDataHistoryOutDTO getHistoryData(String deviceId, String gatewayId, String startTime,
+                                                        String endTime, Integer pageSize) throws NorthApiException {
+
+        QueryDeviceDataHistoryInDTO qddhInDTO = new QueryDeviceDataHistoryInDTO();
+        qddhInDTO.setAppId(OCConstant.APP_ID);
+        qddhInDTO.setPageNo(0);
+        qddhInDTO.setPageSize(pageSize);
+        qddhInDTO.setDeviceId(deviceId);
+        qddhInDTO.setGatewayId(gatewayId);
+        if (StringUtils.isNotEmpty(startTime)) {
+            qddhInDTO.setStartTime(Tools.localToUTC(startTime));
+        }
+        if (StringUtils.isNotEmpty(endTime)) {
+            qddhInDTO.setEndTime(Tools.localToUTC(endTime));
+        }
+        QueryDeviceDataHistoryOutDTO out = ocService.queryDeviceDataHistory(qddhInDTO);
+        return out;
     }
 
 

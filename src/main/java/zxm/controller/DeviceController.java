@@ -68,18 +68,7 @@ public class DeviceController {
     }
 
     @PostMapping("createCommand")
-    public Result createCommand(String deviceId, String gatewayId) {
-        //先获取实时数据
-        QueryDeviceDataHistoryOutDTO out;
-        try {
-            out = getHistoryData(deviceId, gatewayId, null, null, 1);
-        } catch (NorthApiException e) {
-            logger.error(e.toString());
-            return ResultFactory.INSTANCE.error(e.toString());
-        }
-        //判断
-        String shuiwei = out.getDeviceDataHistoryDTOs().get(0).getData().path("shuiwei").asText();
-        String key = Integer.valueOf(shuiwei) >= 1 ? "ON" : "OFF";
+    public Result createCommand(String action, String deviceId, String gatewayId) {
 
         PostDeviceCommandInDTO2 pdcInDTO = new PostDeviceCommandInDTO2();
         pdcInDTO.setCallbackUrl("");
@@ -89,7 +78,7 @@ public class DeviceController {
         commandDTOV4.setServiceId(OCConstant.SERVICE_ID);
         commandDTOV4.setMethod(OCConstant.METHOD);
         Map<String, Object> param = new HashMap<>();
-        param.put("Key", key); //ON,OFF
+        param.put("Key", action); //ON,OFF
         commandDTOV4.setParas(param);
         pdcInDTO.setCommand(commandDTOV4);
         try {
